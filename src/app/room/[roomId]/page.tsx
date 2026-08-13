@@ -90,7 +90,7 @@ export default function InterviewRoomPage({
   }, [roomId, searchParams, router]);
 
   const role: ParticipantRole = isHostVerified ? 'interviewer' : 'candidate';
-  const name = searchParams.get('name') || (role === 'interviewer' ? (room?.interviewerName || 'Robi') : 'Candidate');
+  const name = searchParams.get('name') || (role === 'interviewer' ? (room?.interviewerName || 'Nata') : 'Candidate');
 
   // Actions
   const candidateLink = origin ? `${origin}/room/${roomId}/join` : `/room/${roomId}/join`;
@@ -127,6 +127,26 @@ export default function InterviewRoomPage({
       }
     } catch (e) {
       console.error('Error setting current question:', e);
+    }
+  };
+
+  const handleAddQuestion = async (text: string) => {
+    if (!room || !text.trim()) return;
+    try {
+      const res = await fetch(`/api/room/${roomId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'ADD_QUESTION',
+          payload: { text: text.trim() }
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.room) {
+        setRoom(data.room);
+      }
+    } catch (e) {
+      console.error('Error adding new question during interview:', e);
     }
   };
 
@@ -273,13 +293,12 @@ export default function InterviewRoomPage({
   if (role === 'candidate') {
     return (
       <div className="h-screen min-h-[100dvh] bg-[#09090b] text-zinc-100 flex flex-col selection:bg-zinc-800 overflow-hidden">
-        <header className="border-b border-zinc-800 bg-[#09090b]/90 h-12 sm:h-14 px-3 sm:px-6 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold">
-              <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-            <span className="font-semibold text-white text-sm">Intervia</span>
-          </div>
+        <header className="border-b border-zinc-800 bg-[#050507] sticky top-0 z-50 h-12 sm:h-14 px-3 sm:px-6 flex items-center justify-between shrink-0">
+          <Link href="/" className="flex items-center gap-2 group">
+            <span className="font-geist font-extrabold text-base sm:text-lg tracking-wider text-white">
+              Hirely
+            </span>
+          </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="outline"
@@ -359,13 +378,12 @@ export default function InterviewRoomPage({
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col selection:bg-zinc-800 lg:h-screen lg:overflow-hidden overflow-y-auto">
       {/* Header Bar */}
-      <header className="h-12 border-b border-zinc-800 bg-[#09090b]/90 px-3 sm:px-5 flex items-center justify-between shrink-0">
+      <header className="h-12 border-b border-zinc-800 bg-[#050507] sticky top-0 z-50 px-3 sm:px-5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 sm:gap-4">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-white tracking-tight text-sm">
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold">
-              <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-            <span className="hidden sm:inline">Intervia</span>
+          <Link href="/" className="flex items-center gap-2 group">
+            <span className="font-geist font-extrabold text-base sm:text-lg tracking-wider text-white">
+              Hirely
+            </span>
           </Link>
           <div className="h-4 w-px bg-zinc-800 hidden sm:block" />
           <div className="flex items-center gap-1.5 sm:gap-2">
@@ -435,12 +453,14 @@ export default function InterviewRoomPage({
         {/* Right Sidebar Column (5 cols on desktop) */}
         <div className="lg:col-span-5 xl:col-span-5 flex flex-col gap-2.5 h-auto lg:h-full min-h-0 overflow-hidden">
           {/* Questions Sidebar (Upper half) */}
-          <div className="h-auto lg:h-[40%] min-h-[160px] max-h-[220px] shrink-0 overflow-hidden">
+          <div className="h-auto lg:h-[48%] min-h-[220px] max-h-[360px] shrink-0 overflow-hidden">
             <QuestionSidebar
               questions={questions}
               currentQuestionId={currentQuestion?.id}
               answers={room?.answers || {}}
               onSelectQuestion={handleSelectQuestion}
+              onAddQuestion={handleAddQuestion}
+              isHost={role === 'interviewer'}
             />
           </div>
 

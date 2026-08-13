@@ -275,7 +275,7 @@ export function PreJoinDeviceCheck({
         )}
       </div>
 
-      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl space-y-6">
+      <div className="bg-zinc-900 p-6 sm:p-8 rounded-xl border border-zinc-800 shadow-2xl space-y-6">
         <form onSubmit={handleJoin} className="space-y-6">
           {/* Participant Name Input */}
           <div>
@@ -290,13 +290,13 @@ export function PreJoinDeviceCheck({
                 placeholder="Enter your name..."
                 value={participantName}
                 onChange={(e) => setParticipantName(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 rounded-xl bg-zinc-900/90 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm transition-all"
+                className="w-full pl-11 pr-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700 text-sm transition-all"
               />
             </div>
           </div>
 
           {/* Secure Role Badge */}
-          <div className="flex items-center justify-between text-xs text-zinc-400 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800">
+          <div className="flex items-center justify-between text-xs text-zinc-400 bg-zinc-950 p-3 rounded-xl border border-zinc-800">
             <span className="flex items-center gap-1.5">
               <span>Role:</span>
               <strong className="text-white capitalize">{isHost ? 'Interviewer (Host)' : 'Candidate'}</strong>

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { Copy, Check, Video, ArrowRight, ShieldCheck, Share2 } from 'lucide-react';
+import { Copy, Check, Video, ArrowRight, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { InterviewRoom } from '@/types/interview';
 
@@ -59,42 +59,36 @@ export default function RoomCreatedPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#090a0f] flex items-center justify-center text-zinc-400">
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-zinc-400">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#090a0f] text-zinc-100 flex flex-col justify-between selection:bg-indigo-500/30">
-      {/* Background Decorative Glow */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-gradient-to-b from-emerald-600/10 via-indigo-600/10 to-transparent blur-[140px] rounded-full" />
-      </div>
-
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col justify-between selection:bg-zinc-800">
       {/* Header */}
-      <header className="relative z-10 border-b border-white/5 bg-[#090a0f]/80 backdrop-blur-md sticky top-0">
+      <header className="relative z-50 border-b border-zinc-800 bg-[#050507] sticky top-0">
         <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-white tracking-tight">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-              <Video className="w-4 h-4 text-white" />
-            </div>
-            <span>Intervia</span>
+          <Link href="/" className="flex items-center gap-2 group">
+            <span className="font-geist font-extrabold text-xl tracking-wider text-white">
+              Hirely
+            </span>
           </Link>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="relative z-10 max-w-xl mx-auto px-6 py-12 w-full my-auto text-center">
+      <main className="relative z-10 max-w-xl mx-auto px-6 py-10 w-full my-auto text-center">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-          className="glass-panel p-8 rounded-3xl border border-white/10 shadow-2xl space-y-6"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-zinc-900 p-6 sm:p-8 rounded-xl border border-zinc-800 space-y-6 shadow-2xl"
         >
           {/* Success Badge */}
-          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
-            <Check className="w-7 h-7" />
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
+            <Check className="w-6 h-6" />
           </div>
 
           <div>
@@ -104,13 +98,13 @@ export default function RoomCreatedPage() {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1 tracking-tight">
               {room?.title || 'Job Interview'}
             </h1>
-            <p className="text-sm text-zinc-400 mt-1">
-              Interviewer: <span className="text-zinc-200 font-medium">{room?.interviewerName || 'Robi'}</span>
+            <p className="text-xs text-zinc-400 mt-1">
+              Interviewer: <span className="text-zinc-200 font-medium">{room?.interviewerName || 'Nata'}</span>
             </p>
           </div>
 
           {/* Room ID Badge */}
-          <div className="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-1">
+          <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 space-y-1">
             <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">
               Room ID
             </span>
@@ -124,7 +118,7 @@ export default function RoomCreatedPage() {
             <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">
               Candidate Invite Link
             </label>
-            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800 text-sm">
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-sm">
               <input
                 type="text"
                 readOnly
@@ -148,7 +142,7 @@ export default function RoomCreatedPage() {
             <Button
               variant="primary"
               size="lg"
-              className="w-full shadow-indigo-500/30 text-base py-3.5"
+              className="w-full shadow-indigo-500/20 text-sm py-3"
               onClick={handleEnterRoom}
               rightIcon={<ArrowRight className="w-4 h-4" />}
             >
@@ -164,8 +158,8 @@ export default function RoomCreatedPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 py-6 text-center text-xs text-zinc-500 border-t border-white/5">
-        Intervia Ephemeral Session &bull; Link valid for active interview session
+      <footer className="relative z-10 py-5 text-center text-xs text-zinc-500 border-t border-zinc-800/80">
+        Hirely Ephemeral Session &bull; Link valid for active interview session
       </footer>
     </div>
   );

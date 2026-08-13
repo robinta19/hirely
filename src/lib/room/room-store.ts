@@ -109,6 +109,25 @@ export function updateRoomAnswer(
   return updatedRoom;
 }
 
+export function addRoomQuestion(roomId: string, text: string): InterviewRoom | undefined {
+  const room = roomStore.get(roomId);
+  if (!room) return undefined;
+
+  const newQuestion: InterviewQuestion = {
+    id: `q_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    order: room.questions.length + 1,
+    text: text.trim()
+  };
+
+  const updatedRoom: InterviewRoom = {
+    ...room,
+    questions: [...room.questions, newQuestion]
+  };
+
+  roomStore.set(roomId, updatedRoom);
+  return updatedRoom;
+}
+
 export function addRoomNote(roomId: string, noteText: string): InterviewRoom | undefined {
   const room = roomStore.get(roomId);
   if (!room) return undefined;

@@ -77,9 +77,8 @@ export function FormalInterviewReport({
         printColorAdjust: 'exact',
         boxSizing: 'border-box'
       }}
-      className={`bg-white text-slate-900 font-sans p-8 sm:p-10 rounded-xl border border-slate-200 w-full max-w-4xl mx-auto ${
-        isPrintOnly ? 'print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-full' : 'shadow-xl'
-      }`}
+      className={`bg-white text-slate-900 font-sans p-8 sm:p-10 rounded-xl border border-slate-200 w-full max-w-4xl mx-auto ${isPrintOnly ? 'print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-full' : 'shadow-xl'
+        }`}
     >
       {/* Embedded Print CSS for perfect native A4 page breaks */}
       <style jsx global>{`
@@ -140,7 +139,7 @@ export function FormalInterviewReport({
               LAPORAN HASIL EVALUASI WAWANCARA
             </h1>
             <p style={{ fontSize: '11px', color: '#64748b', margin: '2px 0 0 0', fontWeight: 500 }}>
-              Intervia AI Recruitment Assessment System &bull; Laporan Resmi Executive
+              Hirely AI Recruitment Assessment System &bull; Laporan Resmi Executive
             </p>
           </div>
         </div>
@@ -210,7 +209,7 @@ export function FormalInterviewReport({
           </div>
           <div>
             <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Pewawancara (HR):</span>
-            <span style={{ fontWeight: 500, color: '#1e293b' }}>{room?.interviewerName || 'Robi'}</span>
+            <span style={{ fontWeight: 500, color: '#1e293b' }}>{room?.interviewerName || 'Nata'}</span>
           </div>
           <div>
             <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Total Pertanyaan Evaluasi:</span>
@@ -550,7 +549,7 @@ export function FormalInterviewReport({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <ShieldCheck className="w-4 h-4 text-slate-600 shrink-0" />
           <span>
-            Dokumen ini disintesis secara otomatis oleh sistem Intervia AI. Kerahasiaan data kandidat dilindungi.
+            Dokumen ini disintesis secara otomatis oleh sistem Hirely AI. Kerahasiaan data kandidat dilindungi.
           </span>
         </div>
       </div>

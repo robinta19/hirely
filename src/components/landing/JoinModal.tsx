@@ -52,10 +52,10 @@ export function JoinModal({ isOpen, onClose }: JoinModalProps) {
           </label>
           <input
             type="text"
-            placeholder="e.g. 8fJ29KxQpL or https://intervia.app/room/8fJ29KxQpL"
+            placeholder="e.g. 8fJ29KxQpL or https://hirely.app/room/8fJ29KxQpL"
             value={roomIdOrUrl}
             onChange={(e) => setRoomIdOrUrl(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-zinc-900/90 border border-zinc-700/80 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm transition-all"
+            className="w-full px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700 text-sm transition-all font-inter"
             autoFocus
           />
           {error && <p className="text-xs text-rose-400 mt-2">{error}</p>}

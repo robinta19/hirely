@@ -1,16 +1,20 @@
 import type { Metadata } from 'next';
-import { Plus_Jakarta_Sans } from 'next/font/google';
+import { Geist, Inter } from 'next/font/google';
 import './globals.css';
 
-const jakarta = Plus_Jakarta_Sans({
+const geist = Geist({
   subsets: ['latin'],
-  variable: '--font-sans',
-  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-geist',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
 });
 
 export const metadata: Metadata = {
-  title: 'Intervia — AI-Powered Interview Video Room',
-  description: 'Conduct minimal, fast video interviews with real-time transcription and instant AI candidate evaluation.',
+  title: 'Hirely — AI-Powered Video Interview & Candidate Assessment',
+  description: 'Conduct fast, secure video interviews with real-time speech transcription and instant AI candidate evaluation.',
   icons: {
     icon: '/favicon.ico',
   },
@@ -22,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${jakarta.variable} bg-[#090a0f] text-gray-100 antialiased selection:bg-indigo-500/30 selection:text-indigo-200`}>
+    <html lang="en" className={`dark ${geist.variable} ${inter.variable}`}>
+      <body className="font-sans bg-[#050507] text-gray-100 antialiased selection:bg-white selection:text-black">
         {children}
       </body>
     </html>

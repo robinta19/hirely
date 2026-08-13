@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRoom, updateRoom, updateRoomAnswer, addRoomNote } from '@/lib/room/room-store';
+import { getRoom, updateRoom, updateRoomAnswer, addRoomNote, addRoomQuestion } from '@/lib/room/room-store';
 
 export async function GET(
   request: NextRequest,
@@ -64,6 +64,12 @@ export async function POST(
       case 'ADD_NOTE':
         if (payload.text) {
           updatedRoom = addRoomNote(roomId, payload.text) || room;
+        }
+        break;
+
+      case 'ADD_QUESTION':
+        if (payload.text) {
+          updatedRoom = addRoomQuestion(roomId, payload.text) || room;
         }
         break;
 

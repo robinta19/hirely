@@ -61,7 +61,7 @@ export function Modal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ type: 'spring', duration: 0.3 }}
-            className={`relative w-full ${maxWidthClasses[maxWidth]} glass-panel rounded-2xl p-6 shadow-2xl border border-white/10 z-10`}
+            className={`relative w-full ${maxWidthClasses[maxWidth]} bg-zinc-900 rounded-xl p-6 sm:p-8 shadow-2xl border border-zinc-800 z-10`}
           >
             <div className="flex items-start justify-between mb-4">
               <div>

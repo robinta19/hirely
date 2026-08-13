@@ -66,29 +66,29 @@ export default function InterviewResultPage({
 
   const fullQuestionsList = roomQuestions.length > 0
     ? roomQuestions.map((q) => {
-        const existingQ = rawAnalysis?.questions?.find(aq => aq.questionId === q.id || aq.question === q.text);
-        const answer = room?.answers?.[q.id];
-        const transcriptText = answer?.transcript?.trim();
+      const existingQ = rawAnalysis?.questions?.find(aq => aq.questionId === q.id || aq.question === q.text);
+      const answer = room?.answers?.[q.id];
+      const transcriptText = answer?.transcript?.trim();
 
-        if (existingQ) {
-          return {
-            ...existingQ,
-            question: q.text,
-            candidateAnswer: transcriptText || existingQ.candidateAnswer || 'Belum dijawab oleh kandidat'
-          };
-        }
-
-        const isAnswered = Boolean(transcriptText);
-
+      if (existingQ) {
         return {
-          questionId: q.id,
+          ...existingQ,
           question: q.text,
-          candidateAnswer: isAnswered ? transcriptText! : 'Belum dijawab oleh kandidat',
-          aiSummary: isAnswered ? 'Jawaban terekam dalam sesi wawancara.' : 'Pertanyaan ini belum dijawab oleh kandidat.',
-          score: isAnswered ? 7 : 0,
-          reasoning: isAnswered ? 'Kandidat memberikan tanggapan untuk pertanyaan ini.' : 'Tidak ada tanggapan terekam selama wawancara.'
+          candidateAnswer: transcriptText || existingQ.candidateAnswer || 'Belum dijawab oleh kandidat'
         };
-      })
+      }
+
+      const isAnswered = Boolean(transcriptText);
+
+      return {
+        questionId: q.id,
+        question: q.text,
+        candidateAnswer: isAnswered ? transcriptText! : 'Belum dijawab oleh kandidat',
+        aiSummary: isAnswered ? 'Jawaban terekam dalam sesi wawancara.' : 'Pertanyaan ini belum dijawab oleh kandidat.',
+        score: isAnswered ? 7 : 0,
+        reasoning: isAnswered ? 'Kandidat memberikan tanggapan untuk pertanyaan ini.' : 'Tidak ada tanggapan terekam selama wawancara.'
+      };
+    })
     : (rawAnalysis?.questions || []);
 
   const analysis: InterviewAnalysis = {
@@ -134,7 +134,7 @@ export default function InterviewResultPage({
   const recDetails = getRecommendationDetails(analysis.recommendation);
 
   const handleCopySummary = () => {
-    const reportText = `LAPORAN WAWANCARA INTERVIA
+    const reportText = `LAPORAN WAWANCARA HIRELY
 Judul Wawancara: ${room?.title || 'Wawancara Kerja'}
 Kandidat: ${room?.candidateName || 'Kandidat'}
 Skor Keseluruhan: ${analysis.overallScore} / 100
@@ -270,35 +270,32 @@ ${analysis.concerns.map(c => `• ${c}`).join('\n')}
         <FormalInterviewReport id="formal-interview-report-export" room={room} analysis={analysis} isPrintOnly={true} />
       </div>
       {/* Header */}
-      <header className="relative z-10 border-b border-zinc-800 bg-[#09090b]/90 backdrop-blur-md sticky top-0 print:hidden">
+      <header className="relative z-50 border-b border-zinc-800 bg-[#050507] sticky top-0 print:hidden">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-white text-sm">
-            <div className="w-7 h-7 rounded bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold">
-              <Video className="w-4 h-4" />
-            </div>
-            <span>Intervia</span>
+          <Link href="/" className="flex items-center gap-2 group">
+            <span className="font-geist font-extrabold text-xl tracking-wider text-white">
+              Hirely
+            </span>
           </Link>
 
           {/* View Mode Switcher */}
           <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-1">
             <button
               onClick={() => setViewMode('dashboard')}
-              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                viewMode === 'dashboard'
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'dashboard'
                   ? 'bg-zinc-800 text-white shadow-xs'
                   : 'text-zinc-400 hover:text-zinc-200'
-              }`}
+                }`}
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
               <span>Dashboard</span>
             </button>
             <button
               onClick={() => setViewMode('report')}
-              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                viewMode === 'report'
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-colors ${viewMode === 'report'
                   ? 'bg-zinc-800 text-white shadow-xs'
                   : 'text-zinc-400 hover:text-zinc-200'
-              }`}
+                }`}
             >
               <FileText className="w-3.5 h-3.5" />
               <span>Format Laporan</span>
@@ -380,7 +377,7 @@ ${analysis.concerns.map(c => `• ${c}`).join('\n')}
                     {room?.title || 'Wawancara Kerja'}
                   </h1>
                   <p className="text-xs text-zinc-400 mt-1">
-                    Kandidat: <span className="text-zinc-200 font-medium">{room?.candidateName || 'Kandidat'}</span> &bull; HR: <span className="text-zinc-200 font-medium">{room?.interviewerName || 'Robi'}</span>
+                    Kandidat: <span className="text-zinc-200 font-medium">{room?.candidateName || 'Kandidat'}</span> &bull; HR: <span className="text-zinc-200 font-medium">{room?.interviewerName || 'Nata'}</span>
                   </p>
                 </div>
 
@@ -495,7 +492,7 @@ ${analysis.concerns.map(c => `• ${c}`).join('\n')}
 
       {/* Footer */}
       <footer className="relative z-10 py-5 text-center text-xs text-zinc-500 border-t border-zinc-800 print:hidden">
-        Intervia Video Engine &bull; Evaluasi Berbasis AI
+        Hirely Video Engine &bull; Evaluasi Berbasis AI
       </footer>
     </div>
   );

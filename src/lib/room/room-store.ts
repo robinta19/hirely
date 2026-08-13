@@ -31,7 +31,8 @@ const signalStore = globalRooms.interviewSignalsStore;
 
 export function createRoom(input: CreateRoomInput): InterviewRoom {
   const roomId = generateRoomId();
-  
+  const hostKey = `hk_${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 6)}`;
+
   const questions: InterviewQuestion[] = input.questions
     .filter(q => q.trim().length > 0)
     .map((text, idx) => ({
@@ -44,6 +45,7 @@ export function createRoom(input: CreateRoomInput): InterviewRoom {
     id: roomId,
     title: input.title || 'Job Interview',
     interviewerName: input.interviewerName || 'Interviewer',
+    hostKey,
     createdAt: new Date().toISOString(),
     status: 'waiting',
     questions,

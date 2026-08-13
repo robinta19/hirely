@@ -42,12 +42,19 @@ export default function RoomCreatedPage() {
     fetchRoom();
   }, [roomId]);
 
-  const candidateLink = origin ? `${origin}/room/${roomId}/join?role=candidate` : `/room/${roomId}/join?role=candidate`;
+  const candidateLink = origin ? `${origin}/room/${roomId}/join` : `/room/${roomId}/join`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(candidateLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleEnterRoom = () => {
+    if (room?.hostKey && typeof window !== 'undefined') {
+      sessionStorage.setItem(`hirely_host_${roomId}`, room.hostKey);
+    }
+    router.push(`/room/${roomId}/join?key=${room?.hostKey || ''}`);
   };
 
   if (loading) {
@@ -142,7 +149,7 @@ export default function RoomCreatedPage() {
               variant="primary"
               size="lg"
               className="w-full shadow-indigo-500/30 text-base py-3.5"
-              onClick={() => router.push(`/room/${roomId}/join?role=interviewer`)}
+              onClick={handleEnterRoom}
               rightIcon={<ArrowRight className="w-4 h-4" />}
             >
               Enter Interview Room

@@ -71,6 +71,7 @@ export default function JoinRoomPage({
           roomTitle={room?.title || 'Job Interview'}
           interviewerName={room?.interviewerName || 'Robi'}
           defaultRole={roleParam}
+          hostKey={room?.hostKey}
         />
       </main>
 

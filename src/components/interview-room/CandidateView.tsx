@@ -24,7 +24,7 @@ export function CandidateView({
   onLeave
 }: CandidateViewProps) {
   return (
-    <div className="relative flex flex-col h-full w-full max-w-5xl mx-auto p-2 sm:p-4">
+    <div className="relative flex flex-col flex-1 w-full h-full max-w-5xl mx-auto p-1 sm:p-2 min-h-0 overflow-hidden">
       {/* Question Overlay Banner (If HR made it visible) */}
       <AnimatePresence>
         {showQuestionToCandidate && currentQuestion && (
@@ -32,7 +32,7 @@ export function CandidateView({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="mb-3 p-4 rounded-2xl bg-gradient-to-r from-indigo-900/90 via-zinc-900/90 to-zinc-900 border border-indigo-500/40 text-white shadow-xl flex items-start gap-3 backdrop-blur-md"
+            className="mb-2 p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-indigo-900/90 via-zinc-900/90 to-zinc-900 border border-indigo-500/40 text-white shadow-xl flex items-start gap-3 backdrop-blur-md shrink-0"
           >
             <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-300 shrink-0">
               <HelpCircle className="w-5 h-5" />
@@ -50,7 +50,7 @@ export function CandidateView({
       </AnimatePresence>
 
       {/* Candidate Focused Video Stage */}
-      <div className="flex-1 w-full min-h-[500px]">
+      <div className="flex-1 w-full h-full min-h-[350px] sm:min-h-[450px] overflow-hidden">
         <VideoStage
           roomId={roomId}
           role="candidate"

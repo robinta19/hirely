@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import {
   Camera,
@@ -13,7 +13,8 @@ import {
   AlertCircle,
   CheckCircle2,
   User,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck
 } from 'lucide-react';
 import { ParticipantRole } from '@/types/interview';
 
@@ -22,21 +23,51 @@ interface PreJoinDeviceCheckProps {
   roomTitle?: string;
   interviewerName?: string;
   defaultRole?: ParticipantRole;
+  hostKey?: string;
 }
 
 export function PreJoinDeviceCheck({
   roomId,
   roomTitle = 'Job Interview',
   interviewerName = 'Interviewer',
-  defaultRole = 'candidate'
+  defaultRole = 'candidate',
+  hostKey: propHostKey
 }: PreJoinDeviceCheckProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  const keyParam = searchParams.get('key');
+
+  // Verify host privilege
+  const [isHost, setIsHost] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && propHostKey) {
+      const savedHostKey = sessionStorage.getItem(`hirely_host_${roomId}`);
+      if (keyParam && keyParam === propHostKey) {
+        setIsHost(true);
+        sessionStorage.setItem(`hirely_host_${roomId}`, keyParam);
+      } else if (savedHostKey && savedHostKey === propHostKey) {
+        setIsHost(true);
+      } else {
+        setIsHost(false);
+      }
+    } else {
+      setIsHost(false);
+    }
+  }, [roomId, keyParam, propHostKey]);
+
   const [participantName, setParticipantName] = useState(
-    defaultRole === 'interviewer' ? interviewerName : ''
+    isHost ? interviewerName : ''
   );
-  const [role, setRole] = useState<ParticipantRole>(defaultRole);
+
+  // Update participant name when isHost evaluates
+  useEffect(() => {
+    if (isHost && interviewerName && !participantName) {
+      setParticipantName(interviewerName);
+    }
+  }, [isHost, interviewerName]);
 
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
@@ -60,6 +91,15 @@ export function PreJoinDeviceCheck({
         setCameraStatus('checking');
         setMicStatus('checking');
         setPermissionError('');
+
+        if (!navigator?.mediaDevices?.getUserMedia) {
+          setCameraStatus('error');
+          setMicStatus('error');
+          setPermissionError(
+            'Kamera dan Mikrofon diblokir oleh browser karena diakses melalui IP HTTP (bukan HTTPS/localhost). Silakan buka melalui http://localhost:3000 atau URL Vercel (HTTPS).'
+          );
+          return;
+        }
 
         const mediaStream = await navigator.mediaDevices.getUserMedia({
           video: true,
@@ -179,7 +219,7 @@ export function PreJoinDeviceCheck({
     e.preventDefault();
     if (!participantName.trim()) return;
 
-    if (role === 'candidate') {
+    if (!isHost) {
       try {
         await fetch(`/api/room/${roomId}`, {
           method: 'POST',
@@ -199,21 +239,29 @@ export function PreJoinDeviceCheck({
       stream.getTracks().forEach(t => t.stop());
     }
 
-    router.push(
-      `/room/${roomId}?role=${role}&name=${encodeURIComponent(participantName.trim())}`
-    );
+    const hostKeyToPass = keyParam || (typeof window !== 'undefined' ? sessionStorage.getItem(`hirely_host_${roomId}`) : null);
+
+    if (isHost && hostKeyToPass) {
+      router.push(
+        `/room/${roomId}?key=${encodeURIComponent(hostKeyToPass)}&name=${encodeURIComponent(participantName.trim())}`
+      );
+    } else {
+      router.push(
+        `/room/${roomId}?name=${encodeURIComponent(participantName.trim())}`
+      );
+    }
   };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="text-center space-y-1">
         <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
-          {role === 'candidate' ? "You're invited to an interview" : 'Interviewer Access'}
+          {isHost ? 'Interviewer Access (Host)' : "You're invited to an interview"}
         </span>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
           {roomTitle}
         </h1>
-        {role === 'candidate' && (
+        {!isHost && (
           <p className="text-sm text-zinc-400">
             Hosted by <span className="text-zinc-200 font-medium">{interviewerName}</span>
           </p>
@@ -240,16 +288,16 @@ export function PreJoinDeviceCheck({
             </div>
           </div>
 
-          {/* Role Toggle Switcher if testing */}
-          <div className="flex items-center justify-between text-xs text-zinc-400 bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800">
-            <span>Joining as: <strong className="text-white capitalize">{role}</strong></span>
-            <button
-              type="button"
-              onClick={() => setRole(role === 'candidate' ? 'interviewer' : 'candidate')}
-              className="text-indigo-400 hover:underline font-medium"
-            >
-              Switch to {role === 'candidate' ? 'Interviewer' : 'Candidate'}
-            </button>
+          {/* Secure Role Badge */}
+          <div className="flex items-center justify-between text-xs text-zinc-400 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800">
+            <span className="flex items-center gap-1.5">
+              <span>Role:</span>
+              <strong className="text-white capitalize">{isHost ? 'Interviewer (Host)' : 'Candidate'}</strong>
+            </span>
+            <span className="text-zinc-400 text-[11px] font-mono flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
+              <span>{isHost ? 'Host Key Verified' : 'Protected Candidate Room'}</span>
+            </span>
           </div>
 
           {/* Camera Preview Area */}
@@ -265,7 +313,7 @@ export function PreJoinDeviceCheck({
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover -scale-x-100"
+                  className="w-full h-full object-contain -scale-x-100"
                 />
               ) : (
                 <div className="flex flex-col items-center gap-3 text-zinc-500">

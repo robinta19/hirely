@@ -35,7 +35,7 @@ export function JoinModal({ isOpen, onClose }: JoinModalProps) {
       cleanId = parts[1].split('/')[0].split('?')[0];
     }
 
-    router.push(`/room/${cleanId}/join?role=candidate`);
+    router.push(`/room/${cleanId}/join`);
   };
 
   return (

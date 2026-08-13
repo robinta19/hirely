@@ -17,7 +17,8 @@ import {
   ArrowLeft,
   Download,
   FileText,
-  LayoutDashboard
+  LayoutDashboard,
+  Printer
 } from 'lucide-react';
 
 export default function InterviewResultPage({
@@ -153,6 +154,10 @@ ${analysis.concerns.map(c => `• ${c}`).join('\n')}
     setTimeout(() => setCopied(false), 2500);
   };
 
+  const handlePrintPDF = () => {
+    window.print();
+  };
+
   const handleDownloadPDF = async () => {
     if (downloading) return;
     setDownloading(true);
@@ -177,35 +182,82 @@ ${analysis.concerns.map(c => `• ${c}`).join('\n')}
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        windowWidth: 800
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.98);
       const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10; // 10mm margins
+      const margin = 10;
       const printWidth = pdfWidth - margin * 2;
-      const printHeight = (canvas.height * printWidth) / canvas.width;
       const pageEffectiveHeight = pdfHeight - margin * 2;
 
-      let heightLeft = printHeight;
-      let yPosition = margin;
+      const elementRect = element.getBoundingClientRect();
+      const breakElements = Array.from(element.querySelectorAll('.print-avoid-break'));
+      const breakPositionsPx = breakElements.map(el => {
+        const rect = el.getBoundingClientRect();
+        return {
+          top: rect.top - elementRect.top,
+          bottom: rect.bottom - elementRect.top
+        };
+      });
 
-      pdf.addImage(imgData, 'JPEG', margin, yPosition, printWidth, printHeight);
-      heightLeft -= pageEffectiveHeight;
+      const scaleRatio = canvas.width / elementRect.width;
 
-      while (heightLeft > 0) {
-        pdf.addPage();
-        yPosition -= pageEffectiveHeight;
-        pdf.addImage(imgData, 'JPEG', margin, yPosition, printWidth, printHeight);
-        heightLeft -= pageEffectiveHeight;
+      let currentY = 0;
+      let pageCount = 0;
+
+      while (currentY < elementRect.height) {
+        if (pageCount > 0) {
+          pdf.addPage();
+        }
+        pageCount++;
+
+        let targetY = currentY + (pageEffectiveHeight * (elementRect.width / printWidth));
+
+        if (targetY < elementRect.height) {
+          const splitElement = breakPositionsPx.find(b => b.top < targetY && b.bottom > targetY);
+          if (splitElement && splitElement.top > currentY) {
+            targetY = splitElement.top - 4;
+          }
+        }
+
+        const sliceHeightPx = Math.min(targetY - currentY, elementRect.height - currentY);
+        const sliceCanvasY = currentY * scaleRatio;
+        const sliceCanvasHeight = sliceHeightPx * scaleRatio;
+
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceCanvasHeight;
+        const ctx = pageCanvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          ctx.drawImage(
+            canvas,
+            0,
+            sliceCanvasY,
+            canvas.width,
+            sliceCanvasHeight,
+            0,
+            0,
+            canvas.width,
+            sliceCanvasHeight
+          );
+        }
+
+        const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.98);
+        const pageRenderHeight = (sliceHeightPx * printWidth) / elementRect.width;
+
+        pdf.addImage(pageImgData, 'JPEG', margin, margin, printWidth, pageRenderHeight);
+
+        currentY = targetY;
       }
 
       pdf.save(filename);
     } catch (err) {
       console.error('Error generating direct PDF download:', err);
-      alert('Gagal mengunduh PDF secara langsung. Silakan coba lagi.');
+      window.print();
     } finally {
       setDownloading(false);
     }
@@ -213,6 +265,10 @@ ${analysis.concerns.map(c => `• ${c}`).join('\n')}
 
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col justify-between selection:bg-zinc-800">
+      {/* Hidden Export Container in DOM positioned behind page background to prevent any UI flickering */}
+      <div id="pdf-export-wrapper" style={{ position: 'fixed', top: 0, left: 0, width: '794px', zIndex: -99999, opacity: 0.01, pointerEvents: 'none' }} className="print:static print:w-full print:opacity-100 print:pointer-events-auto">
+        <FormalInterviewReport id="formal-interview-report-export" room={room} analysis={analysis} isPrintOnly={true} />
+      </div>
       {/* Header */}
       <header className="relative z-10 border-b border-zinc-800 bg-[#09090b]/90 backdrop-blur-md sticky top-0 print:hidden">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -249,7 +305,7 @@ ${analysis.concerns.map(c => `• ${c}`).join('\n')}
             </button>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -258,6 +314,15 @@ ${analysis.concerns.map(c => `• ${c}`).join('\n')}
               leftIcon={copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             >
               {copied ? 'Tersalin' : 'Salin Teks'}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handlePrintPDF}
+              className="text-xs"
+              leftIcon={<Printer className="w-3.5 h-3.5" />}
+            >
+              Cetak / Simpan PDF
             </Button>
             <Button
               variant="primary"
@@ -275,12 +340,6 @@ ${analysis.concerns.map(c => `• ${c}`).join('\n')}
 
       {/* Main Content Area */}
       <main className="relative z-10 max-w-4xl mx-auto px-6 py-8 w-full my-auto space-y-6 print:p-0 print:m-0 print:max-w-full">
-        
-        {/* Offscreen Container in DOM for direct html2pdf export & printing */}
-        <div className="fixed -left-[9999px] top-0 w-[800px] pointer-events-none opacity-100 print:static print:w-full print:pointer-events-auto">
-          <FormalInterviewReport id="formal-interview-report-export" room={room} analysis={analysis} isPrintOnly={true} />
-        </div>
-
         {/* Screen View Mode Switcher Output */}
         <div className="print:hidden">
           {viewMode === 'report' ? (

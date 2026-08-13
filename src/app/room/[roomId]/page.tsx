@@ -21,9 +21,6 @@ export default function InterviewRoomPage({
 }) {
   const { roomId } = use(params);
   const searchParams = useSearchParams();
-  const role = (searchParams.get('role') as ParticipantRole) || 'interviewer';
-  const name = searchParams.get('name') || (role === 'interviewer' ? 'Robi' : 'Candidate');
-
   const router = useRouter();
 
   const [room, setRoom] = useState<InterviewRoom | null>(null);
@@ -34,6 +31,7 @@ export default function InterviewRoomPage({
   const [copiedCandidate, setCopiedCandidate] = useState(false);
   const [copiedInterviewer, setCopiedInterviewer] = useState(false);
   const [origin, setOrigin] = useState('');
+  const [isHostVerified, setIsHostVerified] = useState<boolean>(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -41,7 +39,7 @@ export default function InterviewRoomPage({
     }
   }, []);
 
-  // Room state sync polling
+  // Room state sync polling & host key verification
   useEffect(() => {
     let isMounted = true;
 
@@ -52,9 +50,25 @@ export default function InterviewRoomPage({
         const data = await res.json();
         if (res.ok && data.room && isMounted) {
           setRoom(data.room);
+
+          // Verify Host Authorization via secret hostKey
+          const keyParam = searchParams.get('key');
+          const savedKey = typeof window !== 'undefined' ? sessionStorage.getItem(`hirely_host_${roomId}`) : null;
+          const isHost = Boolean(
+            (keyParam && data.room.hostKey && keyParam === data.room.hostKey) ||
+            (savedKey && data.room.hostKey && savedKey === data.room.hostKey)
+          );
+          setIsHostVerified(isHost);
+
+          if (keyParam && data.room.hostKey && keyParam === data.room.hostKey && typeof window !== 'undefined') {
+            sessionStorage.setItem(`hirely_host_${roomId}`, keyParam);
+          }
+
+          const currentRole: ParticipantRole = isHost ? 'interviewer' : 'candidate';
+
           // If room completed by HR, redirect candidate to result page automatically
           if (data.room.status === 'completed' || data.room.status === 'processing') {
-            if (role === 'candidate' && data.room.status === 'completed') {
+            if (currentRole === 'candidate' && data.room.status === 'completed') {
               router.push(`/result/${roomId}`);
             }
           }
@@ -73,11 +87,16 @@ export default function InterviewRoomPage({
       isMounted = false;
       clearInterval(interval);
     };
-  }, [roomId, role, router]);
+  }, [roomId, searchParams, router]);
+
+  const role: ParticipantRole = isHostVerified ? 'interviewer' : 'candidate';
+  const name = searchParams.get('name') || (role === 'interviewer' ? (room?.interviewerName || 'Robi') : 'Candidate');
 
   // Actions
-  const candidateLink = origin ? `${origin}/room/${roomId}/join?role=candidate` : `/room/${roomId}/join?role=candidate`;
-  const interviewerLink = origin ? `${origin}/room/${roomId}/join?role=interviewer` : `/room/${roomId}/join?role=interviewer`;
+  const candidateLink = origin ? `${origin}/room/${roomId}/join` : `/room/${roomId}/join`;
+  const interviewerLink = origin && room?.hostKey
+    ? `${origin}/room/${roomId}/join?key=${room.hostKey}`
+    : `/room/${roomId}/join`;
 
   const handleCopyCandidateLink = () => {
     navigator.clipboard.writeText(candidateLink);
@@ -253,31 +272,31 @@ export default function InterviewRoomPage({
   // Render Candidate Simple View
   if (role === 'candidate') {
     return (
-      <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col justify-between">
-        <header className="border-b border-zinc-800 bg-[#09090b]/90 h-14 px-6 flex items-center justify-between">
+      <div className="h-screen min-h-[100dvh] bg-[#09090b] text-zinc-100 flex flex-col selection:bg-zinc-800 overflow-hidden">
+        <header className="border-b border-zinc-800 bg-[#09090b]/90 h-12 sm:h-14 px-3 sm:px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold">
-              <Video className="w-4 h-4" />
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold">
+              <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
             <span className="font-semibold text-white text-sm">Intervia</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsShareModalOpen(true)}
-              className="text-xs"
+              className="text-xs px-2.5 sm:px-3 h-8"
               leftIcon={<Share2 className="w-3.5 h-3.5" />}
             >
               Bagikan
             </Button>
-            <span className="text-xs text-zinc-400">
+            <span className="text-xs text-zinc-400 truncate max-w-[140px] sm:max-w-xs">
               {room?.title || 'Wawancara Kerja'} &bull; Candidate
             </span>
           </div>
         </header>
 
-        <main className="flex-1 flex items-center justify-center">
+        <main className="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 min-h-0 overflow-hidden">
           <CandidateView
             roomId={roomId}
             candidateName={name}
@@ -338,54 +357,56 @@ export default function InterviewRoomPage({
 
   // Render Interviewer (HR) Desktop & Mobile View
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col overflow-hidden h-screen selection:bg-zinc-800">
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col selection:bg-zinc-800 lg:h-screen lg:overflow-hidden overflow-y-auto">
       {/* Header Bar */}
-      <header className="h-14 border-b border-zinc-800 bg-[#09090b]/90 px-6 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-4">
+      <header className="h-12 border-b border-zinc-800 bg-[#09090b]/90 px-3 sm:px-5 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Link href="/" className="flex items-center gap-2 font-semibold text-white tracking-tight text-sm">
-            <div className="w-7 h-7 rounded bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold">
-              <Video className="w-4 h-4" />
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold">
+              <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
             <span className="hidden sm:inline">Intervia</span>
           </Link>
-          <div className="h-4 w-px bg-zinc-800" />
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-white truncate max-w-[200px] sm:max-w-xs">
+          <div className="h-4 w-px bg-zinc-800 hidden sm:block" />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <h2 className="text-xs sm:text-sm font-semibold text-white truncate max-w-[130px] sm:max-w-xs">
               {room?.title || 'Wawancara Kerja'}
             </h2>
-            <span className="text-[10px] uppercase font-medium text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700/50">
+            <span className="text-[10px] uppercase font-medium text-zinc-400 bg-zinc-800 px-1.5 sm:px-2 py-0.5 rounded border border-zinc-700/50 hidden sm:inline">
               HR Room
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <Button
             variant="secondary"
             size="sm"
             onClick={() => setIsShareModalOpen(true)}
-            className="text-xs"
+            className="text-xs px-2.5 sm:px-3 h-8"
             leftIcon={<Share2 className="w-3.5 h-3.5" />}
           >
-            Bagikan Ruangan
+            <span className="hidden sm:inline">Bagikan Ruangan</span>
+            <span className="inline sm:hidden">Bagikan</span>
           </Button>
 
           <Button
             variant="danger"
             size="sm"
             onClick={() => setIsEndModalOpen(true)}
-            className="text-xs"
+            className="text-xs px-2.5 sm:px-3 h-8"
             leftIcon={<PhoneOff className="w-3.5 h-3.5" />}
           >
-            End Interview
+            <span className="hidden sm:inline">End Interview</span>
+            <span className="inline sm:hidden">End</span>
           </Button>
         </div>
       </header>
 
       {/* Main Grid Viewport */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3.5 p-3.5 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-2.5 p-2 sm:p-2.5 overflow-y-auto lg:overflow-hidden min-h-0">
         {/* Left Video Column (7 cols on desktop) */}
-        <div className="lg:col-span-7 xl:col-span-7 flex flex-col gap-3.5 h-full overflow-hidden">
+        <div className="lg:col-span-7 xl:col-span-7 flex flex-col gap-2.5 h-auto lg:h-full shrink-0 lg:shrink min-h-0 overflow-hidden">
           {/* Active Question Banner */}
           <CurrentQuestionCard
             question={currentQuestion}
@@ -398,7 +419,7 @@ export default function InterviewRoomPage({
           />
 
           {/* Main Video Viewport */}
-          <div className="flex-1 w-full min-h-[350px]">
+          <div className="w-full h-[360px] sm:h-[450px] lg:h-full lg:flex-1 min-h-0 overflow-hidden">
             <VideoStage
               roomId={roomId}
               role="interviewer"
@@ -412,9 +433,9 @@ export default function InterviewRoomPage({
         </div>
 
         {/* Right Sidebar Column (5 cols on desktop) */}
-        <div className="lg:col-span-5 xl:col-span-5 flex flex-col gap-3.5 h-full overflow-hidden">
+        <div className="lg:col-span-5 xl:col-span-5 flex flex-col gap-2.5 h-auto lg:h-full min-h-0 overflow-hidden">
           {/* Questions Sidebar (Upper half) */}
-          <div className="h-[45%] min-h-[220px]">
+          <div className="h-auto lg:h-[40%] min-h-[160px] max-h-[220px] shrink-0 overflow-hidden">
             <QuestionSidebar
               questions={questions}
               currentQuestionId={currentQuestion?.id}
@@ -424,7 +445,7 @@ export default function InterviewRoomPage({
           </div>
 
           {/* Bottom Split: Live Transcript & Private HR Notes */}
-          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[250px]">
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5 min-h-0 overflow-hidden">
             <TranscriptPanel
               currentQuestionId={currentQuestion?.id}
               initialTranscript={room?.answers[currentQuestion?.id || '']?.transcript || ''}

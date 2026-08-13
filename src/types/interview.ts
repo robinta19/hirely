@@ -39,6 +39,7 @@ export interface InterviewRoom {
   title: string;
   interviewerName: string;
   candidateName?: string;
+  hostKey?: string;
   createdAt: string;
   status: RoomStatus;
   questions: InterviewQuestion[];

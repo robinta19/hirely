@@ -145,6 +145,13 @@ export function PreJoinDeviceCheck({
     };
   }, []);
 
+  // Ensure video element srcObject is always bound when stream or camera status updates
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream, isCameraOn, cameraStatus]);
+
   const setupAudioVisualizer = (mediaStream: MediaStream) => {
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -307,20 +314,24 @@ export function PreJoinDeviceCheck({
             </label>
 
             <div className="relative w-full aspect-video rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden flex items-center justify-center group shadow-inner">
-              {isCameraOn && cameraStatus === 'working' ? (
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-contain -scale-x-100"
-                />
-              ) : (
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className={`w-full h-full object-contain -scale-x-100 ${
+                  isCameraOn && cameraStatus === 'working' ? 'block' : 'hidden'
+                }`}
+              />
+
+              {(!isCameraOn || cameraStatus !== 'working') && (
                 <div className="flex flex-col items-center gap-3 text-zinc-500">
                   <div className="w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 text-xl font-bold">
                     {participantName ? participantName.slice(0, 2).toUpperCase() : 'ME'}
                   </div>
-                  <span className="text-xs text-zinc-400 font-medium">Camera is Off</span>
+                  <span className="text-xs text-zinc-400 font-medium">
+                    {cameraStatus === 'checking' ? 'Testing camera & microphone...' : 'Camera is Off'}
+                  </span>
                 </div>
               )}
 
